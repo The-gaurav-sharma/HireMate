@@ -7,9 +7,9 @@ const app = express()
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin:  process.env.FRONTEND_URL,
+    origin: "https://hire-mate-rouge.vercel.app",
     credentials: true
-}))
+}));
 
 /* require all the routes here */
 const authRouter = require("./routes/auth.routes")
