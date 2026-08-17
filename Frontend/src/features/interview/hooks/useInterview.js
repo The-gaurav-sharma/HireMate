@@ -31,40 +31,44 @@ export const useInterview = () => {
 
     // Generate Interview Report
     const generateReport = async ({
-        jobDescription,
-        selfDescription,
-        resumeFile
-    }) => {
+    jobDescription,
+    selfDescription,
+    resumeFile
+}) => {
 
-        setLoading(true);
+    setLoading(true);
 
-        try {
+    try {
 
-            const response = await generateInterviewReport({
-                jobDescription,
-                selfDescription,
-                resumeFile
-            });
+        const response = await generateInterviewReport({
+            jobDescription,
+            selfDescription,
+            resumeFile
+        });
 
-            setReport(response.interviewReport);
+        const interviewReport = response?.interviewReport;
 
-            return response.interviewReport;
-
-        } catch (error) {
-
-            console.error(
-                "Failed to generate interview report:",
-                error
-            );
-
-            return null;
-
-        } finally {
-
-            setLoading(false);
-
+        if (!interviewReport) {
+            throw new Error("Interview report was not returned by the server");
         }
-    };
+
+        setReport(interviewReport);
+
+        return interviewReport;
+
+    } catch (error) {
+
+        console.error(
+            "Failed to generate interview report:",
+            error
+        );
+
+        return null;
+
+    } finally {
+        setLoading(false);
+    }
+};
 
 
     // Get Interview Report By ID
@@ -74,17 +78,23 @@ export const useInterview = () => {
 
         try {
 
-            const response = await getInterviewReportById(interviewId);
+           const response = await getInterviewReportById(interviewId);
 
-            setReport(response.interviewReport);
+const interviewReport = response?.interviewReport;
 
-            return response.interviewReport;
+if (!interviewReport) {
+    throw new Error("Interview report was not returned by the server");
+}
+
+setReport(interviewReport);
+
+return interviewReport;
 
         } catch (error) {
 
             console.error(
                 "Failed to get interview report:",
-                error
+                error       
             );
 
             return null;
@@ -99,32 +109,32 @@ export const useInterview = () => {
 
     // Get All Interview Reports
     const getReports = async () => {
+    setLoading(true);
 
-        setLoading(true);
+    try {
+        const response = await getAllInterviewReports();
 
-        try {
+        const interviewReports = response?.interviewReports || [];
 
-            const response = await getAllInterviewReports();
+        setReports(interviewReports);
 
-            setReports(response.interviewReports);
+        return interviewReports;
 
-            return response.interviewReports;
+    } catch (error) {
 
-        } catch (error) {
+        console.error(
+            "Failed to get interview reports:",
+            error
+        );
 
-            console.error(
-                "Failed to get interview reports:",
-                error
-            );
+        setReports([]);
 
-            return [];
+        return [];
 
-        } finally {
-
-            setLoading(false);
-
-        }
-    };
+    } finally {
+        setLoading(false);
+    }
+};
 
 
     // Generate Resume PDF
