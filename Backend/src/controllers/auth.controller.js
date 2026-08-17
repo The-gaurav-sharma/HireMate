@@ -3,9 +3,10 @@ const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const tokenBlacklistModel = require("../models/blacklist.model")
 
+
 /**
  * @name registerUserController
- * @description register a new user, expects username, email and password in the request body
+ * @description register a new user
  * @access Public
  */
 async function registerUserController(req, res) {
@@ -19,7 +20,7 @@ async function registerUserController(req, res) {
     }
 
     const isUserAlreadyExists = await userModel.findOne({
-        $or: [ { username }, { email } ]
+        $or: [{ username }, { email }]
     })
 
     if (isUserAlreadyExists) {
@@ -37,18 +38,22 @@ async function registerUserController(req, res) {
     })
 
     const token = jwt.sign(
-        { id: user._id, username: user.username },
+        {
+            id: user._id,
+            username: user.username
+        },
         process.env.JWT_SECRET,
-        { expiresIn: "1d" }
+        {
+            expiresIn: "1d"
+        }
     )
 
-  res.cookie("token", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    path: "/"
-});
-
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/"
+    })
 
     res.status(201).json({
         message: "User registered successfully",
@@ -58,13 +63,12 @@ async function registerUserController(req, res) {
             email: user.email
         }
     })
-
 }
 
 
 /**
  * @name loginUserController
- * @description login a user, expects email and password in the request body
+ * @description login a user
  * @access Public
  */
 async function loginUserController(req, res) {
@@ -79,7 +83,10 @@ async function loginUserController(req, res) {
         })
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password)
+    const isPasswordValid = await bcrypt.compare(
+        password,
+        user.password
+    )
 
     if (!isPasswordValid) {
         return res.status(400).json({
@@ -87,40 +94,48 @@ async function loginUserController(req, res) {
         })
     }
 
-    
     const token = jwt.sign(
-    { id: user._id, username: user.username },
-    process.env.JWT_SECRET,
-    { expiresIn: "1d" }
-)
+        {
+            id: user._id,
+            username: user.username
+        },
+        process.env.JWT_SECRET,
+        {
+            expiresIn: "1d"
+        }
+    )
 
-res.cookie("token", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    path: "/"
-})
+    res.cookie("token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/"
+    })
 
-res.status(200).json({
-    message: "User loggedIn successfully.",
-    user: {
-        id: user._id,
-        username: user.username,
-        email: user.email
-    }
-})
+    res.status(200).json({
+        message: "User loggedIn successfully.",
+        user: {
+            id: user._id,
+            username: user.username,
+            email: user.email
+        }
+    })
+}
 
 
 /**
  * @name logoutUserController
- * @description clear token from user cookie and add the token in blacklist
- * @access public
+ * @description clear token from cookie and blacklist token
+ * @access Public
  */
 async function logoutUserController(req, res) {
+
     const token = req.cookies.token
 
     if (token) {
-        await tokenBlacklistModel.create({ token })
+        await tokenBlacklistModel.create({
+            token
+        })
     }
 
     res.clearCookie("token", {
@@ -135,16 +150,15 @@ async function logoutUserController(req, res) {
     })
 }
 
+
 /**
  * @name getMeController
- * @description get the current logged in user details.
- * @access private
+ * @description get current logged in user
+ * @access Private
  */
 async function getMeController(req, res) {
 
     const user = await userModel.findById(req.user.id)
-
-
 
     res.status(200).json({
         message: "User details fetched successfully",
@@ -154,9 +168,7 @@ async function getMeController(req, res) {
             email: user.email
         }
     })
-
 }
-
 
 
 module.exports = {
